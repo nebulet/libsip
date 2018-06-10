@@ -1,0 +1,10 @@
+[package]
+name = "sip"
+version = "0.1.0"
+authors = ["Lachlan Sneff <lachlan.sneff@gmail.com>"]
+
+[dependencies]
+wee_alloc = "0.4.0"
+
+[dependencies.nebulet_abi]
+path = "../nebulet/nabi"
