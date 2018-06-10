@@ -16,7 +16,7 @@ mod channel;
 pub use handle::Handle;
 pub use wasm::Wasm;
 pub use process::Process;
-pub use channel::Channel;
+pub use channel::{Channel, WriteChannel, ReadChannel};
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
