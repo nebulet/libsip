@@ -7,4 +7,4 @@ authors = ["Lachlan Sneff <lachlan.sneff@gmail.com>"]
 wee_alloc = "0.4.0"
 
 [dependencies.nebulet_abi]
-path = "../nebulet/nabi"
+git = "https://github.com/nebulet/abi"
