@@ -1,9 +1,7 @@
 #![feature(
     wasm_import_module,
-    global_allocator,
 )]
 
-extern crate wee_alloc;
 extern crate nabi;
 
 mod abi;
@@ -17,9 +15,6 @@ pub use handle::Handle;
 pub use wasm::Wasm;
 pub use process::Process;
 pub use channel::{Channel, WriteChannel, ReadChannel};
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[macro_export]
 macro_rules! print {
