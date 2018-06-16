@@ -4,7 +4,7 @@
 
 extern crate nabi;
 
-mod abi;
+pub mod abi;
 mod types;
 mod handle;
 mod wasm;

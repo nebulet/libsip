@@ -11,9 +11,13 @@ extern {
     pub fn channel_write(handle: u32, ptr: *const u8, len: usize) -> AbiResult;
     pub fn channel_read(handle: u32, ptr: *mut u8, len: usize, msg_len_out: &mut usize) -> AbiResult;
 
-    pub fn physical_map(phys_addr: u64, page_count: usize) -> AbiResult;
-
     // handles
     pub fn handle_close(handle: u32) -> AbiResult;
     pub fn handle_duplicate(handle: u32, new_rights: u32) -> AbiResult;
+
+    // drivers
+    pub fn physical_map(phys_addr: u64, page_count: usize) -> AbiResult;
+    pub fn read_port_u8(port: u16) -> u8;
+    pub fn write_port_u8(port: u16, val: u8);
+    pub fn set_irq_handler(index: u8, handler: unsafe extern fn());
 }
