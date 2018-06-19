@@ -24,5 +24,6 @@ extern {
     // events
     pub fn event_create() -> AbiResult;
     pub fn event_wait(handle: u32) -> AbiResult;
+    pub fn event_poll(handle: u32) -> AbiResult;
     pub fn event_trigger(handle: u32) -> AbiResult;
 }
