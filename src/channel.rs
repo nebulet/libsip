@@ -5,6 +5,7 @@ use handle::Handle;
 pub struct Channel(Handle);
 
 impl Channel {
+    pub const INITIAL: ReadChannel = ReadChannel(Handle(0));
     pub fn create() -> nabi::Result<(WriteChannel, ReadChannel)> {
         let (mut handle_tx, mut handle_rx) = (0, 0);
         let res: nabi::Result<u32> = unsafe {
@@ -15,7 +16,7 @@ impl Channel {
     }
 }
 
-pub struct WriteChannel(Handle);
+pub struct WriteChannel(pub(crate) Handle);
 
 impl WriteChannel {
     pub fn write(&mut self, data: &[u8]) -> nabi::Result<()> {
@@ -27,7 +28,7 @@ impl WriteChannel {
     }
 }
 
-pub struct ReadChannel(Handle);
+pub struct ReadChannel(pub(crate) Handle);
 
 impl ReadChannel {
     pub fn read_raw(&self, buffer: &mut [u8]) -> (usize, nabi::Result<()>) {

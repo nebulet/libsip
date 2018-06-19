@@ -1,19 +1,21 @@
 use nabi;
 use abi;
 use handle::Handle;
+use channel::ReadChannel;
+use wasm::Wasm;
 
 pub struct Process(Handle);
 
 impl Process {
-    pub fn create(wasm: Handle, channel: Handle) -> nabi::Result<Handle> {
+    pub fn create(wasm: Wasm, channel: ReadChannel) -> nabi::Result<Process> {
         use std::mem;
         let res: nabi::Result<u32> = unsafe {
-            abi::process_create(wasm.0, channel.0)
+            abi::process_create((wasm.0).0, (channel.0).0)
         }.into();
 
         mem::forget(channel);
 
-        res.map(|index| Handle(index))
+        res.map(|index| Process(Handle(index)))
     }
 
     pub fn start(&self) -> nabi::Result<()> {

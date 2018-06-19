@@ -10,11 +10,13 @@ mod handle;
 mod wasm;
 mod process;
 mod channel;
+mod event;
 
 pub use handle::Handle;
 pub use wasm::Wasm;
 pub use process::Process;
 pub use channel::{Channel, WriteChannel, ReadChannel};
+pub use event::Event;
 
 #[macro_export]
 macro_rules! print {
