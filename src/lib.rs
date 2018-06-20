@@ -1,5 +1,6 @@
 #![feature(
     wasm_import_module,
+    const_fn,
 )]
 
 extern crate nabi;
@@ -11,17 +12,24 @@ mod wasm;
 mod process;
 mod channel;
 mod event;
+mod mutex;
+pub mod thread;
 
 pub use handle::Handle;
 pub use wasm::Wasm;
 pub use process::Process;
 pub use channel::{Channel, WriteChannel, ReadChannel};
-pub use event::Event;
+pub use event::{Event, EventState};
+pub use mutex::{Mutex, MutexGuard};
+
+use std::fmt;
 
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => {{
-        $crate::print(&format!($($arg)*));
+        use std::fmt::Write;
+        let mut print_writer = $crate::PrintWriter;
+        let _ = write!(&mut print_writer, $($arg)*);
     }};
 }
 
@@ -51,4 +59,13 @@ pub fn physical_map<T: Sized>(phys_addr: u64) -> nabi::Result<&'static mut T> {
     }.into();
 
     res.map(|offset| unsafe { mem::transmute(offset) })
+}
+
+pub struct PrintWriter;
+
+impl fmt::Write for PrintWriter {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        print(s);
+        Ok(())
+    }
 }

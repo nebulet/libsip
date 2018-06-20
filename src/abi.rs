@@ -26,4 +26,13 @@ extern {
     pub fn event_wait(handle: u32) -> AbiResult;
     pub fn event_poll(handle: u32) -> AbiResult;
     pub fn event_trigger(handle: u32) -> AbiResult;
+    pub fn event_rearm(handle: u32) -> AbiResult;
+
+    // Pretty fast Exclusion
+    pub fn pfex_acquire(state_ptr: *const u8);
+    pub fn pfex_release(state_ptr: *const u8);
+
+    // threads
+    pub fn thread_yield();
+    pub fn thread_spawn(f: extern fn(u32), arg: u32) -> AbiResult;
 }

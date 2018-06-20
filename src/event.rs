@@ -50,4 +50,12 @@ impl Event {
 
         res.map(|count| count as usize)
     }
+
+    pub fn rearm(&self) -> nabi::Result<()> {
+        let res: nabi::Result<u32> = unsafe {
+            abi::event_rearm((self.0).0)
+        }.into();
+
+        res.map(|_| ())
+    }
 }
