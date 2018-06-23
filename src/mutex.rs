@@ -2,8 +2,11 @@ use std::cell::UnsafeCell;
 use std::ops::{Deref, DerefMut, Drop};
 use abi;
 
+#[repr(transparent)]
+struct MutexInner(u32);
+
 pub struct MutexGuard<'a, T: 'a> {
-    pfex_item: &'a u8,
+    pfex_item: &'a MutexInner,
     data: &'a mut T,
 }
 
@@ -11,23 +14,23 @@ unsafe impl<T: Send> Send for Mutex<T> {}
 unsafe impl<T: Send> Sync for Mutex<T> {} 
 
 pub struct Mutex<T> {
-    /// This is forced to start
-    /// out as already triggered.
-    pfex_item: u8,
+    pfex_item: MutexInner,
     data: UnsafeCell<T>,
 }
 
 impl<T> Mutex<T> {
     pub const fn new(data: T) -> Mutex<T> {
         Mutex {
-            pfex_item: 0,
+            pfex_item: MutexInner(0),
             data: UnsafeCell::new(data),
         }
     }
 
     pub fn lock(&self) -> MutexGuard<T> {
+        let addr = &self.pfex_item as *const _ as *const u32;
+        // println!("lock addr: {:p}", addr);
         unsafe {
-            abi::pfex_acquire(&(self.pfex_item) as *const u8);
+            abi::pfex_acquire(addr);
         }
 
         MutexGuard {
@@ -53,7 +56,8 @@ impl<'a, T: 'a> DerefMut for MutexGuard<'a, T> {
 impl<'a, T: 'a> Drop for MutexGuard<'a, T> {
     fn drop(&mut self) {
         unsafe {
-            abi::pfex_release(self.pfex_item as *const u8);
+            let addr = self.pfex_item as *const _ as *const u32;
+            abi::pfex_release(addr);
         }
     }
 }

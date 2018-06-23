@@ -1,10 +1,15 @@
 #![feature(
     wasm_import_module,
     const_fn,
+    link_llvm_intrinsics,
+    allocator_api,
+    naked_functions,
 )]
 
 extern crate nabi;
 
+#[macro_use]
+mod print;
 pub mod abi;
 mod types;
 mod handle;
@@ -14,6 +19,7 @@ mod channel;
 mod event;
 mod mutex;
 pub mod thread;
+mod dlmalloc;
 
 pub use handle::Handle;
 pub use wasm::Wasm;
@@ -24,21 +30,8 @@ pub use mutex::{Mutex, MutexGuard};
 
 use std::fmt;
 
-#[macro_export]
-macro_rules! print {
-    ($($arg:tt)*) => {{
-        use std::fmt::Write;
-        let mut print_writer = $crate::PrintWriter;
-        let _ = write!(&mut print_writer, $($arg)*);
-    }};
-}
-
-#[macro_export]
-macro_rules! println {
-    () => (print!("\n"));
-    ($fmt:expr) => (print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
-}
+#[global_allocator]
+static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
 
 pub fn print(x: &str) {
     unsafe {

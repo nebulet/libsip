@@ -1,6 +1,9 @@
 use handle::Handle;
 use nabi;
 use abi;
+use std::mem;
+
+const DEFAULT_STACK_SIZE: usize = 1024 * 1024; // 1 MiB
 
 pub struct Thread(Handle);
 
@@ -9,9 +12,13 @@ pub fn spawn<F>(f: F) -> nabi::Result<Thread> where
 {
     let main = Box::new(f);
     let fptr = Box::into_raw(main);
+
+    let mut stack = vec![0u8; DEFAULT_STACK_SIZE];
+    let stack_top = stack.as_mut_ptr() as usize + stack.len();
+    mem::forget(stack);
     
     let res: nabi::Result<u32> = unsafe {
-        abi::thread_spawn(thread_entry::<F>, fptr as u32)
+        abi::thread_spawn(thread_entry::<F>, fptr as u32, stack_top as *mut u8)
     }.into();
 
     res.map(|handle| Thread(Handle(handle)))
@@ -29,4 +36,6 @@ extern fn thread_entry<F>(fptr: u32) where
     let boxed = unsafe { Box::from_raw(fptr as *mut F) };
 
     boxed();
+
+    // TODO: clean up after the thread
 }
