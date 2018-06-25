@@ -1,11 +1,20 @@
-use handle::Handle;
 use nabi;
 use abi;
 use std::mem;
 
 const DEFAULT_STACK_SIZE: usize = 1024 * 1024; // 1 MiB
 
-pub struct Thread(Handle);
+pub struct Thread(u32);
+
+impl Thread {
+    pub fn join(self) -> nabi::Result<()> {
+        let res: nabi::Result<u32> = unsafe {
+            abi::thread_join(self.0)
+        }.into();
+
+        res.map(|_| ())
+    }
+}
 
 pub fn spawn<F>(f: F) -> nabi::Result<Thread> where
     F: FnOnce(), F: Send + 'static
@@ -21,7 +30,7 @@ pub fn spawn<F>(f: F) -> nabi::Result<Thread> where
         abi::thread_spawn(thread_entry::<F>, fptr as u32, stack_top as *mut u8)
     }.into();
 
-    res.map(|handle| Thread(Handle(handle)))
+    res.map(|id| Thread(id))
 }
 
 pub fn yield_now() {
