@@ -8,7 +8,7 @@ pub enum EventState {
     Done = 1,
 }
 
-pub struct Event(Handle);
+pub struct Event(pub(crate) Handle);
 
 impl Event {
     pub fn create() -> nabi::Result<Event> {

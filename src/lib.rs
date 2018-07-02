@@ -20,6 +20,7 @@ mod event;
 mod mutex;
 pub mod thread;
 mod dlmalloc;
+pub mod irq;
 
 pub use handle::Handle;
 pub use wasm::Wasm;

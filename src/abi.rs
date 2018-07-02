@@ -19,7 +19,7 @@ extern {
     pub fn physical_map(phys_addr: u64, page_count: usize) -> AbiResult;
     pub fn read_port_u8(port: u16) -> u8;
     pub fn write_port_u8(port: u16, val: u8);
-    pub fn set_irq_handler(index: u8, handler: unsafe extern fn());
+    pub fn create_irq_event(index: u8) -> AbiResult;
 
     // events
     pub fn event_create() -> AbiResult;
