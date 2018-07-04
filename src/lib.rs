@@ -26,7 +26,8 @@ pub use handle::Handle;
 pub use wasm::Wasm;
 pub use process::Process;
 pub use channel::{Channel, WriteChannel, ReadChannel};
-pub use event::{Event, EventState};
+
+pub use event::Event;
 pub use mutex::{Mutex, MutexGuard};
 
 use std::fmt;

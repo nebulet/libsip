@@ -11,3 +11,11 @@ pub unsafe fn create_irq_event(irq: u8) -> nabi::Result<Event> {
 
     Ok(Event(handle))
 }
+
+pub unsafe fn ack_irq(irq: u8) -> nabi::Result<()> {
+    let res: nabi::Result<u32> = {
+        abi::ack_irq(irq)
+    }.into();
+
+    res.map(|_| ())
+}

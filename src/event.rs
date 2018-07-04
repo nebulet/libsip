@@ -2,12 +2,6 @@ use nabi;
 use abi;
 use handle::Handle;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum EventState {
-    Pending = 0,
-    Done = 1,
-}
-
 pub struct Event(pub(crate) Handle);
 
 impl Event {
@@ -21,21 +15,9 @@ impl Event {
         Ok(Event(handle))
     }
 
-    pub fn poll(&self) -> nabi::Result<EventState> {
-        let res: nabi::Result<u32> = unsafe {
-            abi::event_poll((self.0).0)
-        }.into();
-
-        res.map(|s| match s {
-            0 => EventState::Pending,
-            1 => EventState::Done,
-            _ => unimplemented!(),
-        })
-    }
-
     pub fn wait(&self) -> nabi::Result<()> {
         let res: nabi::Result<u32> = unsafe {
-            abi::event_wait((self.0).0)
+            abi::object_wait_one((self.0).0, 1 << 4)
         }.into();
 
         res?;
@@ -43,9 +25,9 @@ impl Event {
         Ok(())
     }
 
-    pub fn trigger(&self) -> nabi::Result<usize> {
+    pub fn signal(&self) -> nabi::Result<usize> {
         let res: nabi::Result<u32> = unsafe {
-            abi::event_trigger((self.0).0)
+            abi::object_signal((self.0).0, 1 << 4, 0)
         }.into();
 
         res.map(|count| count as usize)
@@ -53,7 +35,7 @@ impl Event {
 
     pub fn rearm(&self) -> nabi::Result<()> {
         let res: nabi::Result<u32> = unsafe {
-            abi::event_rearm((self.0).0)
+            abi::object_signal((self.0).0, 0, 1 << 4)
         }.into();
 
         res.map(|_| ())
