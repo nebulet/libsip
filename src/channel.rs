@@ -42,7 +42,9 @@ impl ReadChannel {
 
     pub fn recv_nonblocking(&self) -> nabi::Result<Vec<u8>> {
         let mut faux_buf = [0; 0];
-        let (msg_size, _) = self.recv_raw_nonblocking(&mut faux_buf);
+        let (msg_size, faux_res) = self.recv_raw_nonblocking(&mut faux_buf);
+
+        faux_res?;
 
         let mut buffer = Vec::new();
         buffer.resize(msg_size, 0);
@@ -52,25 +54,67 @@ impl ReadChannel {
     }
 
     pub fn recv_raw(&self, buffer: &mut [u8]) -> (usize, nabi::Result<()>) {
-        let res: nabi::Result<u32> = unsafe {
-            abi::object_wait_one((self.0).0, 1 << 0)
-        }.into();
+        let mut faux_buf = [0; 0];
+        let (_, faux_res) = self.recv_raw_nonblocking(&mut faux_buf);
 
-        if let Ok(_) = res {
-            self.recv_raw_nonblocking(buffer)
-        } else {
-            (0, res.map(|_| ()))
+        match faux_res {
+            Err(nabi::Error::BUFFER_TOO_SMALL) => {
+                self.recv_raw_nonblocking(buffer)
+            },
+            Err(nabi::Error::SHOULD_WAIT) => {
+                let res: nabi::Result<u32> = unsafe {
+                    abi::object_wait_one((self.0).0, 1 << 0)
+                }.into();
+
+                match res {
+                    Ok(_) => self.recv_raw_nonblocking(buffer),
+                    Err(e) => (0, Err(e)),
+                }
+            },
+            Err(e) => (0, Err(e)),
+            Ok(_) => (0, Ok(())),
         }
     }
 
     pub fn recv(&self) -> nabi::Result<Vec<u8>> {
         let mut faux_buf = [0; 0];
-        let (msg_size, _) = self.recv_raw(&mut faux_buf);
+        let (msg_size, faux_res) = self.recv_raw_nonblocking(&mut faux_buf);
 
-        let mut buffer = Vec::new();
-        buffer.resize(msg_size, 0);
-        let (_, res) = self.recv_raw_nonblocking(&mut buffer);
+        match faux_res {
+            Err(nabi::Error::BUFFER_TOO_SMALL) => {
+                let mut buffer = Vec::new();
+                buffer.resize(msg_size, 0);
 
-        res.map(|_| buffer)
+                self.recv_raw_nonblocking(&mut buffer).1.map(|_| buffer)
+            },
+            Err(nabi::Error::SHOULD_WAIT) => {
+                let res: nabi::Result<u32> = unsafe {
+                    abi::object_wait_one((self.0).0, 1 << 0)
+                }.into();
+
+                res?;
+
+                let (msg_size, faux_res) = self.recv_raw_nonblocking(&mut faux_buf);
+
+                match faux_res {
+                    Err(nabi::Error::BUFFER_TOO_SMALL) => {
+                        let mut buffer = Vec::new();
+                        buffer.resize(msg_size, 0);
+                        self.recv_raw_nonblocking(&mut buffer).1.map(|_| buffer)
+                    },
+                    Err(e) => Err(e),
+                    Ok(_) => Ok(Vec::new()),
+                }
+            },
+            Err(e) => Err(e),
+            Ok(_) => Ok(Vec::new()),
+        }
+    }
+}
+
+impl Iterator for ReadChannel {
+    type Item = Vec<u8>;
+    fn next(&mut self) -> Option<Vec<u8>> {
+        self.recv().ok()
     }
 }
