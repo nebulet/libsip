@@ -1,6 +1,6 @@
 use types::AbiResult;
 
-#[wasm_import_module = "abi"]
+#[link(wasm_import_module = "abi")]
 extern {
     pub fn print(ptr: *const u8, len: usize);
     pub fn wasm_compile(ptr: *const u8, len: usize) -> AbiResult;

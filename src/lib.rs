@@ -1,5 +1,4 @@
 #![feature(
-    wasm_import_module,
     const_fn,
     link_llvm_intrinsics,
     allocator_api,
