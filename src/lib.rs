@@ -3,6 +3,7 @@
     link_llvm_intrinsics,
     allocator_api,
     naked_functions,
+    extern_prelude,
 )]
 
 extern crate nabi;
@@ -20,6 +21,7 @@ mod mutex;
 pub mod thread;
 mod dlmalloc;
 pub mod interrupt;
+pub mod driver;
 
 pub use handle::Handle;
 pub use wasm::Wasm;
@@ -38,21 +40,6 @@ pub fn print(x: &str) {
     unsafe {
         abi::print(x.as_ptr(), x.len());
     }
-}
-
-pub fn physical_map<T: Sized>(phys_addr: u64) -> nabi::Result<&'static mut T> {
-    use std::mem;
-
-    let page_count = {
-        let rem = mem::size_of::<T>() % (1 << 16);
-        mem::size_of::<T>() + (1 << 16) - rem
-    };
-
-    let res: nabi::Result<u32> = unsafe {
-        abi::physical_map(phys_addr, page_count)
-    }.into();
-
-    res.map(|offset| unsafe { mem::transmute(offset) })
 }
 
 pub struct PrintWriter;
