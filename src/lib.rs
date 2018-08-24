@@ -33,6 +33,8 @@ pub use mutex::{Mutex, MutexGuard};
 
 use std::fmt;
 
+pub use nabi::{Result, Error};
+
 #[global_allocator]
 static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
 
