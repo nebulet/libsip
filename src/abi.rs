@@ -25,6 +25,8 @@ extern {
 
     // drivers
     pub fn physical_map(phys_addr: u64, page_count: usize) -> AbiResult;
+    // pub fn physical_unmap(ptr: *mut u8, page_count: usize) -> AbiResult;
+    pub fn physical_alloc(page_count: usize, physical_addr_out: *mut u64) -> AbiResult;
     pub fn read_port_u8(port: u16) -> u8;
     pub fn write_port_u8(port: u16, val: u8);
     pub fn interrupt_create(channel: u32, vector: u8) -> AbiResult;

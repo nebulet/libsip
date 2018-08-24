@@ -1,32 +1,94 @@
+use std::mem;
+use std::ops::{Deref, DerefMut};
 use super::abi;
+use nabi::Result;
 
-pub struct Dma<T>(T);
+pub struct Dma<T>{
+    physical_addr: u64,
+    sip_addr: *mut T,
+}
 
 impl<T> Dma<T> {
-    pub fn write(&mut self, value: T) {
-        unsafe {
-            (&mut self.0 as *mut T).write_volatile(value);
-        }
+    pub unsafe fn new(value: T) -> Result<Dma<T>> {
+        let physical_addr = physical_alloc::<T>()?;
+        let sip_addr = physical_map::<T>(physical_addr)?;
+
+        sip_addr.write(value);
+
+        Ok(Dma {
+            physical_addr,
+            sip_addr,
+        })
     }
 
-    pub fn read(&self) -> T {
+    pub unsafe fn zeroed() -> Result<Dma<T>> {
+        let physical_addr = physical_alloc::<T>()?;
+        let sip_addr = physical_map::<T>(physical_addr)?;
+        
+        (sip_addr as *mut u8).write_bytes(0, mem::size_of::<T>());
+
+        Ok(Dma {
+            physical_addr,
+            sip_addr,
+        })
+    }
+
+    pub fn physical(&self) -> u64 {
+        self.physical_addr
+    }
+}
+
+impl<T> Deref for Dma<T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        unsafe { &*self.sip_addr }
+    }
+}
+
+impl<T> DerefMut for Dma<T> {
+    fn deref_mut(&mut self) -> &mut T {
+        unsafe { &mut *self.sip_addr }
+    }
+}
+
+impl<T> Drop for Dma<T> {
+    fn drop(&mut self) {
         unsafe {
-            (&self.0 as *const T).read_volatile()
+            self.sip_addr.drop_in_place();
+
+            // let _ = physical_unmap(self.sip_addr);
         }
     }
 }
 
-pub fn physical_map<T: Sized>(phys_addr: u64) -> nabi::Result<&'static mut T> {
-    use std::mem;
+pub unsafe fn physical_map<T: Sized>(phys_addr: u64) -> Result<*mut T> {
+    let page_count = page_count::<T>();
 
-    let page_count = {
-        let rem = mem::size_of::<T>() % (1 << 16);
-        mem::size_of::<T>() + (1 << 16) - rem
-    };
+    let res: Result<u32> = abi::physical_map(phys_addr, page_count).into();
 
-    let res: nabi::Result<u32> = unsafe {
-        abi::physical_map(phys_addr, page_count)
-    }.into();
+    res.map(|offset| offset as _)
+}
 
-    res.map(|offset| unsafe { mem::transmute(offset) })
+// pub unsafe fn physical_unmap<T: Sized>(ptr: *mut T) -> Result<()> {
+//     let page_count = page_count::<T>();
+
+//     let res: Result<u32> = abi::physical_unmap(ptr as *mut u8, page_count).into();
+
+//     res.map(|_| ())
+// }
+
+/// Allocate some physical memory and return the physical address.
+pub unsafe fn physical_alloc<T: Sized>() -> Result<u64> {
+    let page_count = page_count::<T>();
+
+    let mut physical_addr = 0;
+
+    let res: Result<u32> = abi::physical_alloc(page_count, &mut physical_addr as *mut _).into();
+
+    res.map(|_| physical_addr)
+}
+
+fn page_count<T: Sized>() -> usize {
+    let rem = mem::size_of::<T>() % (1 << 16);
+    mem::size_of::<T>() + (1 << 16) - rem
 }
