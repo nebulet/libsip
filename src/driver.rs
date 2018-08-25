@@ -10,8 +10,7 @@ pub struct Dma<T>{
 
 impl<T> Dma<T> {
     pub unsafe fn new(value: T) -> Result<Dma<T>> {
-        let physical_addr = physical_alloc::<T>()?;
-        let sip_addr = physical_map::<T>(physical_addr)?;
+        let (sip_addr, physical_addr) = physical_alloc::<T>()?;
 
         sip_addr.write(value);
 
@@ -22,8 +21,7 @@ impl<T> Dma<T> {
     }
 
     pub unsafe fn zeroed() -> Result<Dma<T>> {
-        let physical_addr = physical_alloc::<T>()?;
-        let sip_addr = physical_map::<T>(physical_addr)?;
+        let (sip_addr, physical_addr) = physical_alloc::<T>()?;
         
         (sip_addr as *mut u8).write_bytes(0, mem::size_of::<T>());
 
@@ -78,14 +76,14 @@ pub unsafe fn physical_map<T: Sized>(phys_addr: u64) -> Result<*mut T> {
 // }
 
 /// Allocate some physical memory and return the physical address.
-pub unsafe fn physical_alloc<T: Sized>() -> Result<u64> {
+pub unsafe fn physical_alloc<T: Sized>() -> Result<(*mut T, u64)> {
     let page_count = page_count::<T>();
 
     let mut physical_addr = 0;
 
     let res: Result<u32> = abi::physical_alloc(page_count, &mut physical_addr as *mut _).into();
 
-    res.map(|_| physical_addr)
+    res.map(|sip_addr| (sip_addr as *mut T, physical_addr))
 }
 
 fn page_count<T: Sized>() -> usize {
