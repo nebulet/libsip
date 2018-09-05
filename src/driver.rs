@@ -87,6 +87,6 @@ pub unsafe fn physical_alloc<T: Sized>() -> Result<(*mut T, u64)> {
 }
 
 fn page_count<T: Sized>() -> usize {
-    let rem = mem::size_of::<T>() % (1 << 16);
-    mem::size_of::<T>() + (1 << 16) - rem
+    let wasm_page_size = 1 << 16;
+    (mem::size_of::<T>() + wasm_page_size - 1) / wasm_page_size
 }
