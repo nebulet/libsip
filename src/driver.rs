@@ -21,14 +21,16 @@ impl<T> Dma<T> {
     }
 
     pub unsafe fn zeroed() -> Result<Dma<T>> {
-        let (sip_addr, physical_addr) = physical_alloc::<T>()?;
+        // let (sip_addr, physical_addr) = physical_alloc::<T>()?;
         
-        (sip_addr as *mut u8).write_bytes(0, mem::size_of::<T>());
+        // (sip_addr as *mut u8).write_bytes(0, mem::size_of::<T>());
 
-        Ok(Dma {
-            physical_addr,
-            sip_addr,
-        })
+        // Ok(Dma {
+        //     physical_addr,
+        //     sip_addr,
+        // })
+        Dma::new(mem::zeroed())
+
     }
 
     pub fn physical(&self) -> u64 {
