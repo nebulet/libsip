@@ -7,3 +7,6 @@ authors = ["Lachlan Sneff <lachlan.sneff@gmail.com>"]
 
 [dependencies.nebulet_abi]
 git = "https://github.com/nebulet/abi"
+
+[profile.release]
+panic = "abort"

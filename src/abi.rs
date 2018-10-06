@@ -38,9 +38,4 @@ extern {
     // Pretty fast Exclusion
     pub fn pfex_acquire(state_ptr: *const u32);
     pub fn pfex_release(state_ptr: *const u32);
-
-    // threads
-    pub fn thread_yield();
-    pub fn thread_spawn(f: extern fn(u32), arg: u32, stack_ptr: *mut u8) -> AbiResult;
-    pub fn thread_join(id: u32) -> AbiResult;
 }

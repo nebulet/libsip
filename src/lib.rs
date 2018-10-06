@@ -18,7 +18,6 @@ mod process;
 mod channel;
 mod event;
 mod mutex;
-pub mod thread;
 mod dlmalloc;
 pub mod interrupt;
 pub mod driver;
