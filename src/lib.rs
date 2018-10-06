@@ -3,7 +3,6 @@
     link_llvm_intrinsics,
     allocator_api,
     naked_functions,
-    extern_prelude,
 )]
 
 extern crate nabi;
@@ -17,8 +16,8 @@ mod wasm;
 mod process;
 mod channel;
 mod event;
-mod mutex;
-mod dlmalloc;
+// mod mutex;
+// mod dlmalloc;
 pub mod interrupt;
 pub mod driver;
 
@@ -28,14 +27,14 @@ pub use process::Process;
 pub use channel::{Channel, WriteChannel, ReadChannel};
 
 pub use event::Event;
-pub use mutex::{Mutex, MutexGuard};
+// pub use mutex::{Mutex, MutexGuard};
 
 use std::fmt;
 
 pub use nabi::{Result, Error};
 
-#[global_allocator]
-static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
+// #[global_allocator]
+// static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
 
 pub fn print(x: &str) {
     unsafe {

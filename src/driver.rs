@@ -51,11 +51,11 @@ impl<T> DerefMut for Dma<T> {
 
 impl<T> Drop for Dma<T> {
     fn drop(&mut self) {
-        unsafe {
+        // unsafe {
             // self.sip_addr.drop_in_place();
 
             // let _ = physical_unmap(self.sip_addr);
-        }
+        // }
     }
 }
 
